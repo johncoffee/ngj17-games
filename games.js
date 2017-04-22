@@ -1,4 +1,3 @@
-// must be white listed sam-api-1337.appspot.com
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     return new (P || (P = Promise))(function (resolve, reject) {
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
@@ -12,24 +11,26 @@ const BASE_URL = 'https://sam-api-1337.appspot.com/ngj17';
 const list = [];
 let polling = true;
 let pageNr = 1;
-const DELAY = 60; // seconds
+const DELAY = 30; // seconds
 function pollGames(onPollDone) {
     return __awaiter(this, void 0, void 0, function* () {
-        console.log("polling...");
+        //console.log("polling...")
         let keepTrying = true;
+        let newBatch = [];
         while (keepTrying) {
             try {
                 const games = yield loadPage(pageNr++);
-                games.forEach(game => list.push(game));
+                //console.log("page",games.length)
+                games.forEach(game => newBatch.push(game));
+                keepTrying = (games.length > 0);
             }
             catch (e) {
-                console.log("Stopped.", e);
-                keepTrying = false;
+                //console.debug("Stopped.", e)
             }
         }
-        onPollDone();
+        newBatch = newBatch.filter(newGame => !list.find(oldGame => newGame.id === oldGame.id));
+        yield onPollDone(newBatch);
         // reset
-        list.length = 0;
         pageNr = 1;
         yield waitForSeconds(DELAY);
         if (polling) {
@@ -38,28 +39,33 @@ function pollGames(onPollDone) {
     });
 }
 function loadPage(pageNumber) {
-    console.log("loading page " + pageNumber);
+    //console.log("loading page "+pageNumber)
     return new Promise((resolve, reject) => {
         let xhr = new XMLHttpRequest();
         xhr.open("GET", `${BASE_URL}?url=${gamesURL}?page=${pageNumber}`, true);
-        xhr.addEventListener("load", (e) => __awaiter(this, void 0, void 0, function* () {
+        xhr.timeout = 5000;
+        xhr.addEventListener("load", (e) => {
             let responseText = e.target.response;
-            if (!e.target.status || e.target.status != 200) {
-                reject({ message: "Not 200 OK" });
+            if (e.target.status != 200) {
+                reject({ message: "Not 200 OK", statusCode: e.target.status });
                 return;
             }
             let responseJson = JSON.parse(responseText);
-            if (responseJson.submissions instanceof Array == false) {
-                reject({ message: "invalid submissions", responseJson });
+            if (responseJson.submissions instanceof Array) {
+                //console.log("Resolve page ", responseJson.submissions.map(item => item.game).length)
+                resolve(responseJson.submissions.map(item => item.game));
             }
-            console.log("count " + responseJson.submissions.length);
-            resolve(responseJson.submissions);
-        }));
+            else {
+                resolve([]);
+                //console.info({message: "Stopped. invalid submissions", responseJson})
+            }
+        });
         xhr.send();
     });
 }
-function render(root) {
-    root.innerHTML = `${list.length} games.`;
+function render(text) {
+    let root = document.getElementById("games");
+    root.innerHTML = text;
 }
 function waitForSeconds(seconds) {
     return new Promise((resolve) => {
@@ -68,9 +74,30 @@ function waitForSeconds(seconds) {
         }, seconds * 1000);
     });
 }
-function onPollDone() {
-    render(document.getElementById("games"));
+function onPollDone(games) {
+    return __awaiter(this, void 0, void 0, function* () {
+        let isFirstRun = (list.length === 0);
+        if (!isFirstRun) {
+            yield scrollGames(2, games);
+        }
+        games.forEach(game => list.push(game));
+        render(`${list.length} games.`);
+    });
 }
-onPollDone();
+function scrollGames(delay, games) {
+    return __awaiter(this, void 0, void 0, function* () {
+        //console.log(games)
+        let i = 0;
+        let game;
+        while (game = games[i++]) {
+            //console.log("render", game.title)
+            render(game.title);
+            yield waitForSeconds(delay);
+        }
+        yield waitForSeconds(delay);
+        render(`${list.length} games.`);
+    });
+}
+onPollDone([]);
 pollGames(onPollDone);
 //# sourceMappingURL=games.js.map
