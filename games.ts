@@ -91,7 +91,7 @@ async function onPollDone(games:ItchSubmission[]) {
   let isFirstRun = (list.length === 0)
 
   if (!isFirstRun) {
-    await scrollGames(2, games)
+    await scrollGames(10, games)
   }
 
   games.forEach(game => list.push(game))

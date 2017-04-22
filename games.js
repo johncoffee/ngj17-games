@@ -78,7 +78,7 @@ function onPollDone(games) {
     return __awaiter(this, void 0, void 0, function* () {
         let isFirstRun = (list.length === 0);
         if (!isFirstRun) {
-            yield scrollGames(2, games);
+            yield scrollGames(10, games);
         }
         games.forEach(game => list.push(game));
         render(`${list.length} games.`);
