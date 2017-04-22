@@ -1,0 +1,23 @@
+{
+  "name": "ngj17-games",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/johncoffee/ngj17-games.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/johncoffee/ngj17-games/issues"
+  },
+  "homepage": "https://github.com/johncoffee/ngj17-games#readme",
+  "dependencies": {
+    "ts-stream": "^0.9.1",
+    "typescript": "^2.2.2"
+  }
+}
